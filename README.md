@@ -91,6 +91,6 @@ Navigation shortly following a click or keypress becomes a URL checkpoint, so re
 npm test
 ```
 
-Integration tests run Chromium, record real interactions, execute the exported scripts, and verify the resulting requests. Coverage includes forms, credential redaction, frames, popups, external CDP clients, MCP protocol lifecycle, and configuration preservation. GitHub Actions runs the same suite.
+Integration tests run Chromium, record real interactions, execute the exported scripts, and verify the resulting requests. Coverage includes forms, credential redaction, frames, popups, external CDP clients, MCP protocol lifecycle, and configuration preservation. A GitHub Actions template is provided at `ci/github-actions.yml`. Copy it to `.github/workflows/test.yml` using credentials with workflow permission to enable CI. The development token could not install workflows.
 
 Source: `capture.js` installs browser observers; `recorder.js` manages sessions/journals; `generate.js` emits JavaScript; `server.js` exposes the MCP tools. Generated scripts are ordinary files: check useful recordings into your own test suite after reviewing their data and adding assertions.
