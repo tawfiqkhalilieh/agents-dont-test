@@ -155,3 +155,27 @@ console.log(${JSON.stringify(JSON.stringify(response))});
     else process.env.BROWSER_REPLAY_AGY = before;
   }
 });
+
+test('cancellation preserves the export, releases the lock, and never retries', async t => {
+  const s = await session(t);
+  const original = await readFile(s.scriptPath,'utf8');
+  const controller = new AbortController();
+  let attempts = 0;
+  await assert.rejects(enrichReplay(s,{signal:controller.signal,invokeAgent:async task => {
+    attempts++;
+    await fixtureAgent(task);
+    controller.abort();
+  }}),{name:'AbortError'});
+  assert.equal(attempts,1);
+  assert.equal(await readFile(s.scriptPath,'utf8'),original);
+  await assert.rejects(readFile(s.scriptPath+'.enrichment.lock'),{code:'ENOENT'});
+});
+
+test('malformed recorded code is rejected before replay or model invocation', async t => {
+  const s = await session(t);
+  const log = JSON.parse(await readFile(s.recordingPath,'utf8'));
+  log.events.push({type:'check',page:0,selector:'#name',checked:'process.exit(0)'});
+  await writeFile(s.recordingPath,JSON.stringify(log));
+  await writeFile(s.scriptPath,generate(log));
+  await assert.rejects(enrichReplay(s,{invokeAgent:() => {throw new Error('must not run');}}),/Invalid recording/);
+});

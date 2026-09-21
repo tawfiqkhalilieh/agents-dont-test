@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { readFile, copyFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
+import { handleTermination } from './termination.js';
 import { Recorder } from '../plugins/browser-replay/src/recorder.js';
 import { enrichReplay } from '../plugins/browser-replay/src/enrich.js';
 
@@ -16,6 +17,7 @@ await new Promise((resolve,reject) => {server.once('error',reject);server.listen
 const output = path.resolve(values.output);
 await mkdir(output,{recursive:true});
 const recorder = new Recorder(output);
+const termination = handleTermination();
 try {
   await recorder.start({name:'submission',url:`http://127.0.0.1:${port}/`});
   const page = recorder.context.pages()[0];
@@ -29,11 +31,12 @@ try {
   else {
     const scriptPath = path.join(output,'enriched.mjs');
     await copyFile(raw.script,scriptPath);
-    const result = await enrichReplay({scriptPath,recordingPath:path.join(output,'session.json')});
+    const result = await enrichReplay({scriptPath,recordingPath:path.join(output,'session.json')},{signal:termination.signal});
     console.log(JSON.stringify({mode:'live-antigravity-flash',...result},null,2));
   }
-} catch(error) {console.error(error.message);process.exitCode = 1;}
+} catch(error) {console.error(error.message);process.exitCode ||= 1;}
 finally {
+  termination.dispose();
   if (recorder.active) await recorder.stop();
   await new Promise(resolve => server.close(resolve));
 }
