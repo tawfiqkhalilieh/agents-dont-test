@@ -32,3 +32,16 @@ test('setup aborts on malformed configs before writing other files', async t => 
   await assert.rejects(exec(process.execPath,['scripts/setup.js',dir]));
   await assert.rejects(readFile(path.join(dir,'.mcp.json')), {code:'ENOENT'});
 });
+
+test('production setup detects missing Chromium before writing configurations', async t => {
+  const dir = await mkdtemp(path.resolve('.browser-replay-setup-'));
+  t.after(() => rm(dir,{recursive:true,force:true}));
+  await assert.rejects(exec(process.execPath,['scripts/setup.js',dir],{
+    env:{...process.env,NODE_ENV:'production',PLAYWRIGHT_BROWSERS_PATH:path.join(dir,'empty-browser-cache')}
+  }),error => {
+    assert(error.stderr.includes('Chromium could not start'));
+    assert(error.stderr.includes('npm run setup -- --install-browser'));
+    return true;
+  });
+  await assert.rejects(readFile(path.join(dir,'.mcp.json')),{code:'ENOENT'});
+});
