@@ -15,7 +15,7 @@
     "demo:enrich": "node scripts/demo-enrichment.js",
     "demo:serve": "node scripts/serve-demo.js"
   },
-  "devDependencies": {
+  "dependencies": {
     "jsonc-parser": "^3.3.1"
   }
 }

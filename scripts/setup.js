@@ -2,9 +2,13 @@ import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'jsonc-parser';
+import { parseArgs } from 'node:util';
+import { checkChromium } from '../plugins/browser-replay/src/browser-check.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const target = path.resolve(process.argv[2] || root);
+const {values,positionals} = parseArgs({allowPositionals:true,options:{'install-browser':{type:'boolean'}}});
+if (positionals.length > 1) throw new Error('Usage: npm run setup -- [project-directory] [--install-browser]');
+const target = path.resolve(positionals[0] || root);
 const config = {command:process.execPath,args:[path.join(root,'plugins/browser-replay/src/server.js')],env:{BROWSER_REPLAY_OUTPUT:path.join(target,'recordings')}};
 async function read(file) {
   try {return await readFile(file,'utf8');} catch(error) {if(error.code === 'ENOENT') return ''; throw error;}
@@ -41,6 +45,8 @@ if (base.includes(begin)) {
 if (/\[\s*mcp_servers\.(?:browser-replay|"browser-replay"|'browser-replay')(?:\.|\s*\])/.test(base)) throw new Error('Existing unmanaged browser-replay Codex entry; remove or rename it first.');
 const block = `${begin}\n[mcp_servers.browser-replay]\ncommand = ${JSON.stringify(config.command)}\nargs = ${JSON.stringify(config.args)}\ntool_timeout_sec = 900\n[mcp_servers.browser-replay.env]\nBROWSER_REPLAY_OUTPUT = ${JSON.stringify(config.env.BROWSER_REPLAY_OUTPUT)}\n${end}\n`;
 changes.push([file,original,base.trimEnd()+'\n\n'+block]);
+await checkChromium({install:values['install-browser']});
+console.log('Chromium headless launch verified.');
 for (const change of changes) await save(...change);
 for (const dir of ['.agents/skills/browser-replay','.claude/skills/browser-replay']) {
   await mkdir(path.join(target,dir),{recursive:true});

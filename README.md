@@ -10,9 +10,10 @@ Requires Node.js 20+ and Chromium installed through Playwright:
 
 ```sh
 npm ci
-npx playwright install chromium
-npm run setup
+npm run setup -- --install-browser
 ```
+
+`npm ci` and setup support `NODE_ENV=production`. Setup launches Chromium headlessly to check both its binary and system libraries before writing configurations. `--install-browser` installs the matching Playwright Chromium release first; omit the flag when the browser is already installed. Downloads happen during this explicit setup step, not every npm install.
 
 On Linux machines missing browser libraries, use `npx playwright install --with-deps chromium`.
 
@@ -104,9 +105,9 @@ Enrichment performs these steps:
 
 1. Verify that the script matches its recording; fail without overwriting manually edited tests.
 2. Replay the raw script headlessly and sample the target DOM after actions. Evidence includes visible status text, list/table counts and items, field values, and URLs. The short sampling window is bounded; absent evidence is not a reason to invent an assertion.
-3. Give the agent the recording, action summary, DOM evidence, and a candidate script with numbered insertion slots. It adds retrying Playwright `expect` assertions for outcomes: confirmation visibility/text, changed items/counts, cleared/persisted inputs, and navigation.
+3. Give the agent the recording, action summary, DOM evidence, and a candidate script with numbered insertion slots. File-tool paths are supplied as raw normalized absolute paths on separate lines, with explicit instructions against extra quotation marks. Shell quoting is kept separate. Reported tool permission denials stop the workflow without automatic retries or alternate-tool workarounds. It adds retrying Playwright `expect` assertions for outcomes: confirmation visibility/text, changed items/counts, cleared/persisted inputs, and navigation.
 4. Validate that only assertion slots changed, then independently execute `node candidate.mjs` with `HEADLESS=1`. The agent is instructed to verify once too. On failure, supply bounded error output for correction, up to three attempts. Retries cannot remove previously validated matcher types/counts to make failures disappear.
-5. Publish only a verified candidate. Keep an original backup, DOM evidence, and attempt report under a private `.assertion-enrichment-*` directory alongside the script. Failure preserves the original and writes diagnostics. A per-script lock prevents concurrent enrichment; after an interrupted process, remove a stale `.enrichment.lock` only when no enrichment is running.
+5. Publish only a verified candidate. Keep an original backup, DOM evidence, and attempt report under a private `.assertion-enrichment-*` directory alongside the script. Failure preserves the original and writes diagnostics. A per-script heartbeat lock prevents concurrent enrichment. Active locks refresh every 10 seconds; abandoned `.enrichment.lock` directories recover automatically after 60 seconds without a heartbeat. Locks are released on normal exit. Legacy regular-file locks from older versions have no owner metadata, so they are conservatively recovered after 15 minutes. Do not manually delete an active lock.
 
 `--max-attempts 1` limits model retries; `--workspace /project` selects a different registered workspace. Each agent invocation has a three-minute limit and each replay a one-minute limit. Execution repeats task side effects: the default workflow can run once for observation plus once per agent attempt and once per independent verification (up to seven executions). Use a resettable test application. Assertion checks are additive and cannot rewrite actions, swallow exceptions, or force success. They do not prove that a model inferred the right business requirement; review the resulting diff. Unsupported/manual recording steps fail before enrichment.
 
