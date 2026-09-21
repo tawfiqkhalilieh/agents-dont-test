@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QuickStore — Checkout Demo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 16px; }
+    .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .product-card { border: 1px solid #ddd; padding: 16px; border-radius: 8px; }
+    .cart-summary { background: #f8f9fa; padding: 16px; border-radius: 8px; }
+    button { padding: 8px 16px; cursor: pointer; }
+    .confirmation { background: #e6f4ea; color: #137333; padding: 12px; border-radius: 6px; margin-top: 16px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>QuickStore</h1>
+    <div class="product-grid">
+      <div class="product-card" id="product-keyboard">
+        <h3>Mechanical Keyboard</h3>
+        <p>$50.00</p>
+        <button type="button" data-testid="add-keyboard" onclick="addToCart('Mechanical Keyboard', 50)">Add to Cart</button>
+      </div>
+      <div class="product-card" id="product-mouse">
+        <h3>Wireless Mouse</h3>
+        <p>$25.00</p>
+        <button type="button" data-testid="add-mouse" onclick="addToCart('Wireless Mouse', 25)">Add to Cart</button>
+      </div>
+    </div>
+
+    <div class="cart-summary">
+      <h2>Your Cart (<span data-testid="cart-count">0 items</span>)</h2>
+      <ul data-testid="cart-items"></ul>
+      <p>Total: $<span data-testid="cart-total">0.00</span></p>
+      <button type="button" data-testid="checkout-btn" onclick="checkout()">Complete Order</button>
+    </div>
+
+    <div role="status" data-testid="order-confirmation" class="confirmation" hidden></div>
+  </main>
+
+  <script>
+    const cart = [];
+    function updateCartUI() {
+      const itemsList = document.querySelector('[data-testid="cart-items"]');
+      const countEl = document.querySelector('[data-testid="cart-count"]');
+      const totalEl = document.querySelector('[data-testid="cart-total"]');
+      
+      itemsList.innerHTML = '';
+      let total = 0;
+      cart.forEach(item => {
+        total += item.price;
+        const li = document.createElement('li');
+        li.textContent = `${item.name} - $${item.price.toFixed(2)}`;
+        itemsList.appendChild(li);
+      });
+      countEl.textContent = `${cart.length} item${cart.length === 1 ? '' : 's'}`;
+      totalEl.textContent = total.toFixed(2);
+    }
+
+    function addToCart(name, price) {
+      cart.push({ name, price });
+      updateCartUI();
+    }
+
+    function checkout() {
+      if (cart.length === 0) return;
+      const conf = document.querySelector('[data-testid="order-confirmation"]');
+      conf.textContent = 'Order placed successfully!';
+      conf.hidden = false;
+      cart.length = 0;
+      updateCartUI();
+      history.pushState({}, '', '#order-success');
+    }
+  </script>
+</body>
+</html>
