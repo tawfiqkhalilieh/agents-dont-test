@@ -156,6 +156,30 @@ console.log(${JSON.stringify(JSON.stringify(response))});
   }
 });
 
+test('headless auto-denials and denied_actions stop enrichment without retrying', async t => {
+  const s = await session(t);
+  const original = await readFile(s.scriptPath,'utf8');
+  const executable = path.join(s.dir,'auto-denied-agy.cjs');
+  const counter = path.join(s.dir,'invocations');
+  const response = {status:'SUCCESS',response:'',denied_actions:[{action:'read_file',display_name:'ViewFile'}]};
+  await writeFile(executable,`#!${process.execPath}
+require('node:fs').appendFileSync(${JSON.stringify(counter)},'called\\n');
+console.error('jetski: no output produced — a tool required the "read_file" permission that headless mode cannot prompt for, so it was auto-denied.');
+console.log(${JSON.stringify(JSON.stringify(response))});
+`,{mode:0o700});
+  const before = process.env.BROWSER_REPLAY_AGY;
+  process.env.BROWSER_REPLAY_AGY = executable;
+  try {
+    await assert.rejects(enrichReplay(s),/tool permission denial/);
+    assert.equal(await readFile(counter,'utf8'),'called\n');
+    assert.equal(await readFile(s.scriptPath,'utf8'),original);
+    await assert.rejects(readFile(s.scriptPath+'.enrichment.lock'),{code:'ENOENT'});
+  } finally {
+    if (before === undefined) delete process.env.BROWSER_REPLAY_AGY;
+    else process.env.BROWSER_REPLAY_AGY = before;
+  }
+});
+
 test('cancellation preserves the export, releases the lock, and never retries', async t => {
   const s = await session(t);
   const original = await readFile(s.scriptPath,'utf8');
