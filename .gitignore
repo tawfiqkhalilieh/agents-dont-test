@@ -1,0 +1,12 @@
+node_modules/
+recordings/
+.browser-replay/
+*.log
+.test-recordings-*/
+.browser-replay-setup-*/
+/.mcp.json
+/.codex/
+/.vscode/
+/.agents/skills/browser-replay/
+/.claude/skills/browser-replay/
+*.browser-replay-backup

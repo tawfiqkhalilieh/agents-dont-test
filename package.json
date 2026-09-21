@@ -1,0 +1,18 @@
+{
+  "name": "agents-dont-test",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "plugins/browser-replay"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "setup": "node scripts/setup.js",
+    "start": "node plugins/browser-replay/src/server.js",
+    "browser": "node scripts/browser.js"
+  },
+  "devDependencies": {
+    "jsonc-parser": "^3.3.1"
+  }
+}

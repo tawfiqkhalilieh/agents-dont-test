@@ -1,0 +1,11 @@
+import { chromium } from 'playwright';
+const port = Number(process.env.CDP_PORT || 9222);
+if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('CDP_PORT must be between 1024 and 65535');
+const browser = await chromium.launch({headless:process.env.HEADLESS === '1',args:[`--remote-debugging-port=${port}`,'--remote-debugging-address=127.0.0.1']});
+const context = await browser.newContext();
+await context.newPage();
+console.log(`Connect the testing agent and record_start to http://127.0.0.1:${port}`);
+console.log('Press Ctrl+C to close this browser.');
+process.on('SIGINT', () => browser.close().then(() => process.exit(0)));
+process.on('SIGTERM', () => browser.close().then(() => process.exit(0)));
+await new Promise(resolve => browser.on('disconnected',resolve));
