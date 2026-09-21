@@ -13,6 +13,10 @@ test('setup preserves existing servers, backs up configs, and is idempotent', as
   await exec(process.execPath,['scripts/setup.js',dir]);
   const file = path.join(dir,'.codex/config.toml');
   const before = await readFile(file,'utf8');
+  assert(before.includes('tool_timeout_sec = 900'));
+  const spec = await readFile(path.join(dir,'.agents/agents/assertion-enricher.md'),'utf8');
+  assert(spec.includes('model: flash'));
+  assert.equal(spec,await readFile('plugins/browser-replay/agents/assertion-enricher.md','utf8'));
   await exec(process.execPath,['scripts/setup.js',dir]);
   assert.equal(await readFile(file,'utf8'),before);
   const config = JSON.parse(await readFile(path.join(dir,'.agents/mcp_config.json'),'utf8'));

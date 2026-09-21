@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "type": "page",
+      "page": 0,
+      "id": 0,
+      "time": 1789992384860
+    },
+    {
+      "type": "goto",
+      "page": 0,
+      "url": "http://127.0.0.1:4173/",
+      "urlSecrets": [],
+      "id": 1,
+      "time": 1789992384885
+    },
+    {
+      "type": "fill",
+      "selector": "[id=\"name\"]",
+      "value": "Ada",
+      "page": 0,
+      "frames": [],
+      "id": 2,
+      "time": 1789992384940
+    },
+    {
+      "type": "fill",
+      "selector": "[id=\"message\"]",
+      "value": "Repeat this task",
+      "page": 0,
+      "frames": [],
+      "id": 3,
+      "time": 1789992384950
+    },
+    {
+      "type": "click",
+      "selector": "[data-testid=\"submit\"]",
+      "button": "left",
+      "page": 0,
+      "frames": [],
+      "id": 4,
+      "time": 1789992385000
+    },
+    {
+      "type": "navigation",
+      "page": 0,
+      "url": "http://127.0.0.1:4173/#saved",
+      "urlSecrets": [],
+      "id": 5,
+      "time": 1789992385004
+    }
+  ],
+  "requiredEnv": [],
+  "errors": []
+}

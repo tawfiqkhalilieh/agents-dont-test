@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Browser Replay demo</title></head>
+<body>
+  <main>
+    <h1>Submission tracker</h1>
+    <form id="submission-form">
+      <label for="name">Name</label><input id="name" name="name" required>
+      <label for="message">Message</label><textarea id="message" name="message" required></textarea>
+      <button type="submit" data-testid="submit">Save submission</button>
+    </form>
+    <p role="status" data-testid="confirmation" hidden></p>
+    <h2>Submissions</h2>
+    <ul data-testid="submissions"></ul>
+  </main>
+  <script>
+    document.querySelector('form').addEventListener('submit', event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const data = new FormData(form);
+      const item = document.createElement('li');
+      item.textContent = `${data.get('name')}: ${data.get('message')}`;
+      document.querySelector('[data-testid="submissions"]').append(item);
+      const confirmation = document.querySelector('[data-testid="confirmation"]');
+      confirmation.textContent = 'Submission saved';
+      confirmation.hidden = false;
+      form.reset();
+      history.pushState({}, '', '#saved');
+    });
+  </script>
+</body>
+</html>

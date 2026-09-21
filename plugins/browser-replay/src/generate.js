@@ -1,10 +1,11 @@
 const q = JSON.stringify;
-export function generate(recording) {
+export function generate(recording, { preamble = '', afterEvent = () => '' } = {}) {
   const lines = ["import { chromium } from 'playwright';", '',
     'const required = name => { if (process.env[name] === undefined) throw new Error(`Missing environment variable: ${name}`); return process.env[name]; };',
     "const browser = await chromium.launch({ headless: process.env.HEADLESS !== '0' });",
     'const resolveURL = (raw, secrets) => { const url = new URL(raw); for (const {key, env} of secrets) url.searchParams.set(key, required(env)); return url.href; };', 'const context = await browser.newContext();', 'context.setDefaultTimeout(15000);', 'const pages = new Map();', 'try {'];
-  for (const e of recording.events) {
+  if (preamble) lines.splice(1, 0, preamble);
+  for (const [index, e] of recording.events.entries()) {
     const page = `pages.get(${q(e.page)})`;
     let scope = page;
     for (const frame of e.frames || []) scope += `.frameLocator(${q(frame)})`;
@@ -28,6 +29,8 @@ export function generate(recording) {
       case 'unsupported': lines.push(`throw new Error(${q(`Manual step required: ${e.reason}`)});`); break;
       default: throw new Error(`Unknown event type: ${e.type}`);
     }
+    const addition = afterEvent(e, index);
+    if (addition) lines.push(addition);
   }
   lines.push('} finally {', '  await browser.close();', '}', '');
   return lines.join('\n');

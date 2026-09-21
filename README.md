@@ -85,6 +85,48 @@ This is DOM observation, not a recording of the agent's thoughts or its entire t
 
 Navigation shortly following a click or keypress becomes a URL checkpoint, so replay does not submit forms twice. Direct navigation becomes `goto`. Since a DOM observer cannot always distinguish delayed application navigation from a separately requested agent navigation, review those transitions in the generated script. Record independent tasks separately. A changed website or starting state can invalidate a recording.
 
+## Add assertions with a Flash subagent
+
+After `record_stop`, enrich an unmodified export with Antigravity's `assertion-enricher`:
+
+```sh
+npm run setup
+npm run enrich -- recordings/session.mjs recordings/session.json
+# Or call the MCP tool:
+# record_enrich({"scriptPath":"/project/recordings/session.mjs","recordingPath":"/project/recordings/session.json"})
+```
+
+This optional step requires an installed, authenticated [Antigravity CLI](https://antigravity.google/docs/cli/install). Use `BROWSER_REPLAY_AGY=/absolute/path/to/agy` if it is not on PATH. The application must be running, and any `requiredEnv` values from the recording must be available. Existing host command permissions must allow the agent to run Node for its verification; enrichment does not change global permission settings. If an MCP client has a short tool timeout, use the standalone command. Setup gives Codex a 900-second tool timeout.
+
+The registered [agent specification](.agents/agents/assertion-enricher.md) uses `model: flash` and only `view_file`, `replace_file_content`, `write_to_file`, and `run_command`; inherited MCP tools are disabled. The canonical plugin copy is in `plugins/browser-replay/agents/`. Setup installs it in the target workspace. The same specification is selectable through Antigravity's [`--agent` headless option](https://antigravity.google/docs/cli/headless/) and callable as a [custom subagent](https://antigravity.google/docs/subagents?tab=cli). `mainAgent: true` permits the CLI to select it directly, avoiding an extra orchestrator model call. The CLI resolves the `flash` tier; no larger-model fallback is requested.
+
+Enrichment performs these steps:
+
+1. Verify that the script matches its recording; fail without overwriting manually edited tests.
+2. Replay the raw script headlessly and sample the target DOM after actions. Evidence includes visible status text, list/table counts and items, field values, and URLs. The short sampling window is bounded; absent evidence is not a reason to invent an assertion.
+3. Give the agent the recording, action summary, DOM evidence, and a candidate script with numbered insertion slots. It adds retrying Playwright `expect` assertions for outcomes: confirmation visibility/text, changed items/counts, cleared/persisted inputs, and navigation.
+4. Validate that only assertion slots changed, then independently execute `node candidate.mjs` with `HEADLESS=1`. The agent is instructed to verify once too. On failure, supply bounded error output for correction, up to three attempts. Retries cannot remove previously validated matcher types/counts to make failures disappear.
+5. Publish only a verified candidate. Keep an original backup, DOM evidence, and attempt report under a private `.assertion-enrichment-*` directory alongside the script. Failure preserves the original and writes diagnostics. A per-script lock prevents concurrent enrichment; after an interrupted process, remove a stale `.enrichment.lock` only when no enrichment is running.
+
+`--max-attempts 1` limits model retries; `--workspace /project` selects a different registered workspace. Each agent invocation has a three-minute limit and each replay a one-minute limit. Execution repeats task side effects: the default workflow can run once for observation plus once per agent attempt and once per independent verification (up to seven executions). Use a resettable test application. Assertion checks are additive and cannot rewrite actions, swallow exceptions, or force success. They do not prove that a model inferred the right business requirement; review the resulting diff. Unsupported/manual recording steps fail before enrichment.
+
+Enriched scripts import `expect` from `@playwright/test`, which is included in this plugin's dependencies. Install it alongside Playwright when moving an enriched script to another project. Ordinary DOM text and recording values are available to the selected model; credential controls and known secret environment values are redacted from collected evidence. Recordings, observations, and website content are explicitly treated as untrusted data by the agent prompt.
+
+### Demo
+
+`website/index.html` is a resettable form that adds a submission to a list, clears its fields, shows a confirmation, and updates the URL fragment.
+
+```sh
+# Record the demo, invoke the REAL authenticated Flash agent, and verify:
+npm run demo:enrich
+# Prepare raw artifacts without a model:
+npm run demo:enrich -- --record-only
+# Serve the demo for replaying saved artifacts:
+npm run demo:serve
+```
+
+The live demo uses `http://127.0.0.1:4173/` and writes raw, recording, and enriched artifacts into `recordings/demo/`. Use `--port` for a different port when recording; use `BROWSER_REPLAY_DEMO_PORT` when serving. [The checked-in demonstration](examples/enrichment/README.md) identifies how its assertions were produced and how they were verified. Integration tests use a deterministic agent stand-in, run real Chromium replays, and deliberately break the application to verify that added assertions catch a regression. They do not claim to validate Flash output or account authentication.
+
 ## Development
 
 ```sh

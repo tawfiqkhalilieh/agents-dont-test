@@ -11,7 +11,8 @@ test('MCP handshake, tool discovery, recording lifecycle, and error responses', 
   t.after(async () => {await client.close();await rm(dir,{recursive:true,force:true});});
   await client.connect(transport);
   const tools = await client.listTools();
-  assert.equal(tools.tools.length,4);
+  assert.equal(tools.tools.length,5);
+  assert(tools.tools.some(tool => tool.name === 'record_enrich'));
   const started = await client.callTool({name:'record_start',arguments:{name:'mcp-test'}});
   assert.equal(JSON.parse(started.content[0].text).active,true);
   const stopped = await client.callTool({name:'record_stop',arguments:{}});

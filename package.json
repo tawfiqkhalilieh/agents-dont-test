@@ -10,7 +10,10 @@
     "test": "node --test test/*.test.js",
     "setup": "node scripts/setup.js",
     "start": "node plugins/browser-replay/src/server.js",
-    "browser": "node scripts/browser.js"
+    "browser": "node scripts/browser.js",
+    "enrich": "node scripts/enrich-test.js",
+    "demo:enrich": "node scripts/demo-enrichment.js",
+    "demo:serve": "node scripts/serve-demo.js"
   },
   "devDependencies": {
     "jsonc-parser": "^3.3.1"

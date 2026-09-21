@@ -39,11 +39,14 @@ if (base.includes(begin)) {
   base = base.slice(0,a)+base.slice(b+end.length).replace(/^\n/,'');
 }
 if (/\[\s*mcp_servers\.(?:browser-replay|"browser-replay"|'browser-replay')(?:\.|\s*\])/.test(base)) throw new Error('Existing unmanaged browser-replay Codex entry; remove or rename it first.');
-const block = `${begin}\n[mcp_servers.browser-replay]\ncommand = ${JSON.stringify(config.command)}\nargs = ${JSON.stringify(config.args)}\n[mcp_servers.browser-replay.env]\nBROWSER_REPLAY_OUTPUT = ${JSON.stringify(config.env.BROWSER_REPLAY_OUTPUT)}\n${end}\n`;
+const block = `${begin}\n[mcp_servers.browser-replay]\ncommand = ${JSON.stringify(config.command)}\nargs = ${JSON.stringify(config.args)}\ntool_timeout_sec = 900\n[mcp_servers.browser-replay.env]\nBROWSER_REPLAY_OUTPUT = ${JSON.stringify(config.env.BROWSER_REPLAY_OUTPUT)}\n${end}\n`;
 changes.push([file,original,base.trimEnd()+'\n\n'+block]);
 for (const change of changes) await save(...change);
 for (const dir of ['.agents/skills/browser-replay','.claude/skills/browser-replay']) {
   await mkdir(path.join(target,dir),{recursive:true});
   await copyFile(path.join(root,'plugins/browser-replay/skills/browser-replay/SKILL.md'),path.join(target,dir,'SKILL.md'));
 }
+const agentFile = path.join(target,'.agents/agents/assertion-enricher.md');
+const agentSource = await readFile(path.join(root,'plugins/browser-replay/agents/assertion-enricher.md'),'utf8');
+await save(agentFile,await read(agentFile),agentSource);
 console.log('Restart/reload MCP servers in the host. Browser capture starts with record_start.');

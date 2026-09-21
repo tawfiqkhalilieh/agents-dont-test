@@ -10,3 +10,5 @@ recordings/
 /.agents/skills/browser-replay/
 /.claude/skills/browser-replay/
 *.browser-replay-backup
+.assertion-enrichment-*/
+*.enrichment.lock

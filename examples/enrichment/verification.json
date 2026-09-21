@@ -1,0 +1,9 @@
+{
+  "assertionSource": "deterministic test stand-in, not Flash",
+  "liveAntigravityAttempt": "blocked: authentication required",
+  "verifiedBy": "node examples/enrichment/enriched.mjs",
+  "exitCode": 0,
+  "assertions": 7,
+  "outcomes": 6,
+  "attempts": 1
+}
