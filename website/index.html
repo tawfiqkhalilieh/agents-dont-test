@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Portal - Feedback & Support</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success-bg: #dcfce7;
+      --success-text: #166534;
+      --success-border: #86efac;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      border: 1px solid var(--border);
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    input[type="text"],
+    input[type="email"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .checkbox-group label {
+      margin-bottom: 0;
+      font-weight: 400;
+      cursor: pointer;
+    }
+    button.btn-submit {
+      width: 100%;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button.btn-submit:hover {
+      background-color: var(--primary-hover);
+    }
+    .confirmation {
+      margin-top: 24px;
+      padding: 16px;
+      background-color: var(--success-bg);
+      color: var(--success-text);
+      border: 1px solid var(--success-border);
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 15px;
+      display: none;
+    }
+    .submissions {
+      margin-top: 28px;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+      display: none;
+    }
+    .submissions h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .submission-item {
+      background: var(--bg);
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Feedback & Support Portal</h1>
+    <p class="subtitle">Please submit your feedback or inquiry below.</p>
+
+    <form id="feedback-form">
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" data-testid="name-input" placeholder="e.g. Ada Lovelace" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" data-testid="email-input" placeholder="e.g. ada@example.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="topic">Inquiry Type</label>
+        <select id="topic" name="topic" data-testid="topic-select">
+          <option value="feedback">Product Feedback</option>
+          <option value="bug">Bug Report</option>
+          <option value="feature">Feature Request</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="message">Message</label>
+        <textarea id="message" name="message" data-testid="message-input" rows="3" placeholder="Tell us what you think..." required></textarea>
+      </div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="subscribe" name="subscribe" data-testid="subscribe-checkbox">
+        <label for="subscribe">Receive product updates and news</label>
+      </div>
+
+      <button type="submit" id="submit-btn" data-testid="submit-btn" class="btn-submit">Submit Feedback</button>
+    </form>
+
+    <div id="confirmation" data-testid="confirmation" class="confirmation">
+      Feedback received successfully! Thank you for helping us improve.
+    </div>
+
+    <div id="submissions" class="submissions">
+      <h2>Recent Submissions</h2>
+      <div id="submissions-list" data-testid="submissions-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('feedback-form');
+    const confirmation = document.getElementById('confirmation');
+    const submissionsSection = document.getElementById('submissions');
+    const submissionsList = document.getElementById('submissions-list');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const topic = document.getElementById('topic').value;
+      const message = document.getElementById('message').value.trim();
+      const subscribe = document.getElementById('subscribe').checked;
+
+      // Show confirmation
+      confirmation.style.display = 'block';
+
+      // Add to list
+      const item = document.createElement('div');
+      item.className = 'submission-item';
+      item.setAttribute('data-testid', 'submission-entry');
+      item.innerHTML = `<strong>${name}</strong> (${email}) - <em>${topic}</em><br>${message}` +
+                       (subscribe ? '<br><small>✓ Subscribed to newsletter</small>' : '');
+      submissionsList.appendChild(item);
+      submissionsSection.style.display = 'block';
+
+      // Clear form
+      form.reset();
+    });
+  </script>
+</body>
+</html>

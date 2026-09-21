@@ -10,7 +10,9 @@
     "test": "node --test test/*.test.js",
     "setup": "node scripts/setup.js",
     "start": "node plugins/browser-replay/src/server.js",
-    "browser": "node scripts/browser.js"
+    "browser": "node scripts/browser.js",
+    "website": "node website/server.js",
+    "test:website": "node website/generated-test.mjs"
   },
   "devDependencies": {
     "jsonc-parser": "^3.3.1"

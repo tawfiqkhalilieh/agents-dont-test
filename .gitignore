@@ -7,6 +7,6 @@ recordings/
 /.mcp.json
 /.codex/
 /.vscode/
-/.agents/skills/browser-replay/
+/.agents/
 /.claude/skills/browser-replay/
 *.browser-replay-backup
