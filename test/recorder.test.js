@@ -99,3 +99,29 @@ test('rejects conflicting recordings and unsafe filenames', async t => {
   await r.stop();
   await assert.rejects(r.stop(),/No active/);
 });
+
+test('concurrent lifecycle requests cannot overwrite a session or export twice', async t => {
+  const f = await fixture(t);
+  const r = new Recorder(f.dir);
+  t.after(async () => {if(r.phase === 'recording') await r.stop();});
+  const starting = r.start({url:f.url});
+  await assert.rejects(r.start(),/already active/);
+  await assert.rejects(r.stop(),/ready to stop/);
+  await starting;
+  assert.equal(r.status().phase,'recording');
+  const stopping = r.stop();
+  await assert.rejects(r.stop(),/ready to stop/);
+  await assert.rejects(r.start(),/already active/);
+  const result = await stopping;
+  assert((await readFile(result.script,'utf8')).includes('chromium.launch'));
+  assert.equal(r.status().phase,'idle');
+  await r.start();await r.stop();
+});
+
+test('a failed browser connection resets the lifecycle for the next session', async t => {
+  const f = await fixture(t);
+  const r = new Recorder(f.dir);
+  await assert.rejects(r.start({endpoint:'http://127.0.0.1:1'}));
+  assert.equal(r.phase,'idle');
+  await r.start();await r.stop();
+});

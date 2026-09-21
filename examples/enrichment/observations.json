@@ -1,0 +1,302 @@
+[
+  {
+    "eventIndex": 1,
+    "frameIndex": 0,
+    "url": "http://127.0.0.1:4173/",
+    "dom": [
+      {
+        "tag": "h1",
+        "selector": null,
+        "role": null,
+        "visible": true,
+        "text": "Submission tracker"
+      },
+      {
+        "tag": "input",
+        "selector": "[id=\"name\"]",
+        "role": null,
+        "visible": true,
+        "value": ""
+      },
+      {
+        "tag": "textarea",
+        "selector": "[id=\"message\"]",
+        "role": null,
+        "visible": true,
+        "value": ""
+      },
+      {
+        "tag": "button",
+        "selector": "[data-testid=\"submit\"]",
+        "role": null,
+        "visible": true,
+        "text": "Save submission"
+      },
+      {
+        "tag": "p",
+        "selector": "[data-testid=\"confirmation\"]",
+        "role": "status",
+        "visible": false,
+        "text": ""
+      },
+      {
+        "tag": "h2",
+        "selector": null,
+        "role": null,
+        "visible": true,
+        "text": "Submissions"
+      },
+      {
+        "tag": "ul",
+        "selector": "[data-testid=\"submissions\"]",
+        "role": null,
+        "visible": true,
+        "text": "",
+        "count": 0,
+        "items": []
+      }
+    ]
+  },
+  {
+    "eventIndex": 2,
+    "frameIndex": 0,
+    "url": "http://127.0.0.1:4173/",
+    "dom": [
+      {
+        "tag": "h1",
+        "selector": null,
+        "role": null,
+        "visible": true,
+        "text": "Submission tracker"
+      },
+      {
+        "tag": "input",
+        "selector": "[id=\"name\"]",
+        "role": null,
+        "visible": true,
+        "value": "Ada"
+      },
+      {
+        "tag": "textarea",
+        "selector": "[id=\"message\"]",
+        "role": null,
+        "visible": true,
+        "value": ""
+      },
+      {
+        "tag": "button",
+        "selector": "[data-testid=\"submit\"]",
+        "role": null,
+        "visible": true,
+        "text": "Save submission"
+      },
+      {
+        "tag": "p",
+        "selector": "[data-testid=\"confirmation\"]",
+        "role": "status",
+        "visible": false,
+        "text": ""
+      },
+      {
+        "tag": "h2",
+        "selector": null,
+        "role": null,
+        "visible": true,
+        "text": "Submissions"
+      },
+      {
+        "tag": "ul",
+        "selector": "[data-testid=\"submissions\"]",
+        "role": null,
+        "visible": true,
+        "text": "",
+        "count": 0,
+        "items": []
+      }
+    ]
+  },
+  {
+    "eventIndex": 3,
+    "frameIndex": 0,
+    "url": "http://127.0.0.1:4173/",
+    "dom": [
+      {
+        "tag": "h1",
+        "selector": null,
+        "role": null,
+        "visible": true,
+        "text": "Submission tracker"
+      },
+      {
+        "tag": "input",
+        "selector": "[id=\"name\"]",
+        "role": null,
+        "visible": true,
+        "value": "Ada"
+      },
+      {
+        "tag": "textarea",
+        "selector": "[id=\"message\"]",
+        "role": null,
+        "visible": true,
+        "value": "Repeat this task"
+      },
+      {
+        "tag": "button",
+        "selector": "[data-testid=\"submit\"]",
+        "role": null,
+        "visible": true,
+        "text": "Save submission"
+      },
+      {
+        "tag": "p",
+        "selector": "[data-testid=\"confirmation\"]",
+        "role": "status",
+        "visible": false,
+        "text": ""
+      },
+      {
+        "tag": "h2",
+        "selector": null,
+        "role": null,
+        "visible": true,
+        "text": "Submissions"
+      },
+      {
+        "tag": "ul",
+        "selector": "[data-testid=\"submissions\"]",
+        "role": null,
+        "visible": true,
+        "text": "",
+        "count": 0,
+        "items": []
+      }
+    ]
+  },
+  {
+    "eventIndex": 4,
+    "frameIndex": 0,
+    "url": "http://127.0.0.1:4173/#saved",
+    "dom": [
+      {
+        "tag": "h1",
+        "selector": null,
+        "role": null,
+        "visible": true,
+        "text": "Submission tracker"
+      },
+      {
+        "tag": "input",
+        "selector": "[id=\"name\"]",
+        "role": null,
+        "visible": true,
+        "value": ""
+      },
+      {
+        "tag": "textarea",
+        "selector": "[id=\"message\"]",
+        "role": null,
+        "visible": true,
+        "value": ""
+      },
+      {
+        "tag": "button",
+        "selector": "[data-testid=\"submit\"]",
+        "role": null,
+        "visible": true,
+        "text": "Save submission"
+      },
+      {
+        "tag": "p",
+        "selector": "[data-testid=\"confirmation\"]",
+        "role": "status",
+        "visible": true,
+        "text": "Submission saved"
+      },
+      {
+        "tag": "h2",
+        "selector": null,
+        "role": null,
+        "visible": true,
+        "text": "Submissions"
+      },
+      {
+        "tag": "ul",
+        "selector": "[data-testid=\"submissions\"]",
+        "role": null,
+        "visible": true,
+        "text": "Ada: Repeat this task",
+        "count": 1,
+        "items": [
+          {
+            "text": "Ada: Repeat this task",
+            "visible": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "eventIndex": 5,
+    "frameIndex": 0,
+    "url": "http://127.0.0.1:4173/#saved",
+    "dom": [
+      {
+        "tag": "h1",
+        "selector": null,
+        "role": null,
+        "visible": true,
+        "text": "Submission tracker"
+      },
+      {
+        "tag": "input",
+        "selector": "[id=\"name\"]",
+        "role": null,
+        "visible": true,
+        "value": ""
+      },
+      {
+        "tag": "textarea",
+        "selector": "[id=\"message\"]",
+        "role": null,
+        "visible": true,
+        "value": ""
+      },
+      {
+        "tag": "button",
+        "selector": "[data-testid=\"submit\"]",
+        "role": null,
+        "visible": true,
+        "text": "Save submission"
+      },
+      {
+        "tag": "p",
+        "selector": "[data-testid=\"confirmation\"]",
+        "role": "status",
+        "visible": true,
+        "text": "Submission saved"
+      },
+      {
+        "tag": "h2",
+        "selector": null,
+        "role": null,
+        "visible": true,
+        "text": "Submissions"
+      },
+      {
+        "tag": "ul",
+        "selector": "[data-testid=\"submissions\"]",
+        "role": null,
+        "visible": true,
+        "text": "Ada: Repeat this task",
+        "count": 1,
+        "items": [
+          {
+            "text": "Ada: Repeat this task",
+            "visible": true
+          }
+        ]
+      }
+    ]
+  }
+]

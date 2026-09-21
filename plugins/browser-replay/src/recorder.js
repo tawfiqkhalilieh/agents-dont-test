@@ -15,6 +15,7 @@ export class Recorder {
     this.queue = Promise.resolve();
     this.pending = new Set();
     this.active = false;
+    this.phase = 'idle';
     this.secrets = new Map();
     this.listeners = [];
   }
@@ -47,19 +48,21 @@ export class Recorder {
     if (!this.active) return;
     const entry = { ...event, id: this.events.length, time: Date.now() };
     this.events.push(entry);
-    this.queue = this.queue.then(() => appendFile(this.journal, JSON.stringify(entry) + '\n', {mode: 0o600}));
+    const journal = this.journal;
+    this.queue = this.queue.then(() => appendFile(journal, JSON.stringify(entry) + '\n', {mode: 0o600}));
     this.queue.catch(error => { if (!this.errors.includes(error.message)) this.errors.push(error.message); });
     return entry;
   }
   async start({ name = 'session', endpoint, url, headless = true } = {}) {
-    if (this.active || this.browser) throw new Error('A recording is already active');
+    if (this.phase !== 'idle') throw new Error('A recording is already active or changing state');
     if (!/^[a-zA-Z0-9_-]{1,80}$/.test(name)) throw new Error('Name must contain 1–80 letters, digits, underscores or hyphens');
-    this.events = []; this.pages.clear(); this.errors = []; this.secrets.clear(); this.queue = Promise.resolve();
-    await mkdir(this.outputDir, {recursive:true, mode:0o700});
-    this.base = path.join(this.outputDir, `${name}-${randomUUID()}`);
-    this.journal = `${this.base}.jsonl`;
-    this.owned = !endpoint;
+    this.phase = 'starting';
     try {
+      this.events = []; this.pages.clear(); this.errors = []; this.secrets.clear(); this.queue = Promise.resolve();
+      await mkdir(this.outputDir, {recursive:true, mode:0o700});
+      this.base = path.join(this.outputDir, `${name}-${randomUUID()}`);
+      this.journal = `${this.base}.jsonl`;
+      this.owned = !endpoint;
       this.browser = endpoint ? await chromium.connectOverCDP(endpoint) : await chromium.launch({ headless });
       this.context = endpoint ? this.browser.contexts()[0] : await this.browser.newContext();
       if (!this.context) throw new Error('The connected browser has no default context');
@@ -80,12 +83,16 @@ export class Recorder {
       if (!this.context.pages().length) await this.context.newPage();
       while (this.pending.size) await Promise.allSettled([...this.pending]);
       if (url) await this.context.pages()[0].goto(url);
+      this.phase = 'recording';
       return this.status();
     } catch (error) {
       this.active = false;
       for (const remove of this.listeners.splice(0)) remove();
       if (this.browser) await this.browser.close().catch(() => {});
       this.browser = null;
+      await Promise.allSettled([...this.pending]);
+      await this.queue.catch(() => {});
+      this.phase = 'idle';
       throw error;
     }
   }
@@ -142,23 +149,23 @@ export class Recorder {
     this.append(event);
   }
   status() {
-    return { active:this.active, events:this.events.length, pages:[...this.pages.entries()].filter(([p]) => !p.isClosed()).map(([p,id]) => ({id,url:(() => {const u = new URL(p.url()); u.search = ''; u.hash = ''; u.username = ''; u.password = ''; return u.href;})()})), journal:this.journal, requiredEnv:[...this.secrets.values()], errors:this.errors };
+    return { active:this.active, phase:this.phase, events:this.events.length, pages:[...this.pages.entries()].filter(([p]) => !p.isClosed()).map(([p,id]) => ({id,url:(() => {const u = new URL(p.url()); u.search = ''; u.hash = ''; u.username = ''; u.password = ''; return u.href;})()})), journal:this.journal, requiredEnv:[...this.secrets.values()], errors:this.errors };
   }
   async assertText(pageId, selector, text) {
     const page = [...this.pages].find(([,id]) => id === pageId)?.[0];
-    if (!this.active || !page) throw new Error('No active recorded page with that ID');
+    if (this.phase !== 'recording' || !page) throw new Error('No active recorded page with that ID');
     if (await page.locator(selector).innerText() !== text) throw new Error('Current text does not match the assertion');
     this.append({type:'assert',page:pageId,selector,text});
   }
   async stop() {
-    if (!this.active) throw new Error('No active recording');
-    // Round-trip each live document to flush preceding exposed-binding calls.
-    await Promise.allSettled([...this.pages.keys()].flatMap(p => p.frames().map(f => f.evaluate(() => new Promise(resolve => setTimeout(resolve, 0))))));
-    while (this.pending.size) await Promise.allSettled([...this.pending]);
-    this.active = false;
+    if (this.phase !== 'recording') throw new Error('No active recording ready to stop');
+    this.phase = 'stopping';
+    // Stop incoming events before draining already queued binding calls.
     for (const remove of this.listeners.splice(0)) remove();
-    await Promise.allSettled([...this.pages.keys()].flatMap(p => p.frames().map(f => f.evaluate(marker => window[marker]?.abort(), this.options.marker))));
     try {
+      await Promise.allSettled([...this.pages.keys()].flatMap(p => p.frames().map(f => f.evaluate(marker => window[marker]?.abort(), this.options.marker))));
+      while (this.pending.size) await Promise.allSettled([...this.pending]);
+      this.active = false;
       await this.queue;
       const events = [];
       for (const event of this.events) {
@@ -173,7 +180,8 @@ export class Recorder {
       return {journal:this.journal, recording:`${this.base}.json`, script:`${this.base}.mjs`, events:events.length, requiredEnv:recording.requiredEnv, errors:this.errors};
     } finally {
       // Playwright disconnects CDP clients without closing the external browser.
-      await this.browser.close(); this.browser = null;
+      this.active = false;
+      try {await this.browser.close();} finally {this.browser = null; this.phase = 'idle';}
     }
   }
 }
