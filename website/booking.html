@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EventPass — Ticket Booking</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; color: #202124; }
+    h1 { color: #1a73e8; margin-bottom: 4px; }
+    .event-info { background: #f1f3f4; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; }
+    form { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-weight: 500; font-size: 14px; }
+    input[type="text"], input[type="number"], select { padding: 9px 12px; font-size: 15px; border: 1px solid #dadce0; border-radius: 4px; font-family: inherit; }
+    .total-display { font-size: 18px; font-weight: bold; margin: 10px 0; color: #137333; }
+    button[type="submit"] { padding: 10px 20px; font-size: 16px; font-weight: 600; color: white; background: #1a73e8; border: none; border-radius: 4px; cursor: pointer; }
+    button[type="submit"]:hover { background: #174ea6; }
+    .confirmation { background: #e6f4ea; border: 1px solid #ceead6; color: #137333; padding: 16px; border-radius: 8px; margin-top: 16px; }
+    .confirmation h3 { margin-top: 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>EventPass</h1>
+    <div class="event-info">
+      <h3>Tech Summit 2026</h3>
+      <p>November 15-17 • Moscone Center, San Francisco</p>
+    </div>
+
+    <form id="booking-form">
+      <div class="form-group">
+        <label for="attendee-name">Full Name</label>
+        <input type="text" id="attendee-name" data-testid="attendee-name" placeholder="Ada Lovelace" required>
+      </div>
+
+      <div class="form-group">
+        <label for="ticket-tier">Ticket Tier</label>
+        <select id="ticket-tier" data-testid="ticket-tier">
+          <option value="General Admission" data-price="150">General Admission ($150.00)</option>
+          <option value="VIP Pass" data-price="350">VIP Pass ($350.00)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="ticket-qty">Number of Tickets</label>
+        <input type="number" id="ticket-qty" data-testid="ticket-qty" min="1" max="10" value="1" required>
+      </div>
+
+      <div class="total-display">
+        Total: $<span data-testid="total-price">150.00</span>
+      </div>
+
+      <button type="submit" data-testid="book-now-btn">Confirm Booking</button>
+    </form>
+
+    <div role="status" data-testid="booking-confirmation" class="confirmation" hidden>
+      <h3>Booking Confirmed!</h3>
+      <p>Attendee: <strong data-testid="confirmed-name"></strong></p>
+      <p>Tier: <span data-testid="confirmed-tier"></span></p>
+      <p>Tickets: <span data-testid="confirmed-qty"></span></p>
+      <p>Total Paid: $<span data-testid="confirmed-total"></span></p>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById('booking-form');
+    const nameInput = document.getElementById('attendee-name');
+    const tierSelect = document.getElementById('ticket-tier');
+    const qtyInput = document.getElementById('ticket-qty');
+    const totalEl = document.querySelector('[data-testid="total-price"]');
+    const confBox = document.querySelector('[data-testid="booking-confirmation"]');
+    const confName = document.querySelector('[data-testid="confirmed-name"]');
+    const confTier = document.querySelector('[data-testid="confirmed-tier"]');
+    const confQty = document.querySelector('[data-testid="confirmed-qty"]');
+    const confTotal = document.querySelector('[data-testid="confirmed-total"]');
+
+    function calculateTotal() {
+      const price = Number(tierSelect.options[tierSelect.selectedIndex].dataset.price);
+      const qty = Math.max(1, Number(qtyInput.value) || 1);
+      const total = price * qty;
+      totalEl.textContent = total.toFixed(2);
+      return total.toFixed(2);
+    }
+
+    tierSelect.addEventListener('change', calculateTotal);
+    qtyInput.addEventListener('input', calculateTotal);
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      const tier = tierSelect.value;
+      const qty = qtyInput.value;
+      const total = calculateTotal();
+
+      confName.textContent = name;
+      confTier.textContent = tier;
+      confQty.textContent = qty;
+      confTotal.textContent = total;
+      confBox.hidden = false;
+
+      nameInput.value = '';
+      history.pushState({}, '', '#booking-confirmed');
+    });
+  </script>
+</body>
+</html>

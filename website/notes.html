@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QuickNotes — Note Keeper</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 650px; margin: 40px auto; padding: 0 16px; color: #333; }
+    h1 { color: #1a1a1a; margin-bottom: 8px; }
+    .status-banner { padding: 10px 14px; background: #e6f4ea; color: #137333; border-radius: 6px; margin-bottom: 16px; font-weight: 500; }
+    form { display: flex; flex-direction: column; gap: 12px; background: #f8f9fa; padding: 18px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #e2e4e7; }
+    input[type="text"], textarea, select { padding: 8px 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+    textarea { min-height: 80px; resize: vertical; }
+    button { padding: 9px 18px; font-size: 15px; font-weight: 600; cursor: pointer; border-radius: 4px; border: none; }
+    button[type="submit"] { background: #1a73e8; color: white; align-self: flex-start; }
+    button[type="submit"]:hover { background: #1557b0; }
+    .notes-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .notes-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+    .note-card { border: 1px solid #ddd; border-radius: 8px; padding: 14px 16px; background: #fff; position: relative; }
+    .note-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .note-card h3 { margin: 0; font-size: 16px; color: #202124; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; background: #e8f0fe; color: #1967d2; }
+    .note-card p { margin: 0; color: #5f6368; font-size: 14px; line-height: 1.4; }
+    .delete-btn { background: #fce8e6; color: #c5221f; padding: 4px 10px; font-size: 12px; border-radius: 4px; }
+    .delete-btn:hover { background: #fad2cf; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>QuickNotes</h1>
+    <p>Organize your thoughts, tasks, and ideas.</p>
+
+    <div role="status" data-testid="status-message" class="status-banner" hidden></div>
+
+    <form id="note-form">
+      <input type="text" id="note-title" data-testid="note-title" placeholder="Note title" required>
+      <textarea id="note-content" data-testid="note-content" placeholder="Write your note here..." required></textarea>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <select id="note-tag" data-testid="note-tag">
+          <option value="Work">Work</option>
+          <option value="Personal">Personal</option>
+          <option value="Ideas">Ideas</option>
+        </select>
+        <button type="submit" data-testid="save-note-btn">Save Note</button>
+      </div>
+    </form>
+
+    <div class="notes-header">
+      <h2>Your Notes</h2>
+      <span data-testid="notes-count">0 notes</span>
+    </div>
+
+    <ul data-testid="notes-list" class="notes-list"></ul>
+  </main>
+
+  <script>
+    const notes = [];
+    const form = document.getElementById('note-form');
+    const titleInput = document.getElementById('note-title');
+    const contentInput = document.getElementById('note-content');
+    const tagSelect = document.getElementById('note-tag');
+    const notesList = document.querySelector('[data-testid="notes-list"]');
+    const notesCount = document.querySelector('[data-testid="notes-count"]');
+    const statusMsg = document.querySelector('[data-testid="status-message"]');
+
+    function renderNotes() {
+      notesList.innerHTML = '';
+      notes.forEach((note, index) => {
+        const li = document.createElement('li');
+        li.className = 'note-card';
+        li.setAttribute('data-testid', 'note-item');
+        li.innerHTML = `
+          <div class="note-card-header">
+            <h3>${note.title}</h3>
+            <span class="badge" data-testid="note-tag-badge">${note.tag}</span>
+          </div>
+          <p>${note.content}</p>
+          <div style="margin-top: 10px; text-align: right;">
+            <button type="button" class="delete-btn" data-testid="delete-note-btn" onclick="deleteNote(${index})">Delete</button>
+          </div>
+        `;
+        notesList.appendChild(li);
+      });
+      notesCount.textContent = `${notes.length} note${notes.length === 1 ? '' : 's'}`;
+    }
+
+    function deleteNote(index) {
+      notes.splice(index, 1);
+      renderNotes();
+      statusMsg.textContent = 'Note deleted';
+      statusMsg.hidden = false;
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const title = titleInput.value.trim();
+      const content = contentInput.value.trim();
+      const tag = tagSelect.value;
+      if (!title || !content) return;
+
+      notes.push({ title, content, tag });
+      titleInput.value = '';
+      contentInput.value = '';
+      tagSelect.value = 'Work';
+      renderNotes();
+
+      statusMsg.textContent = 'Note saved successfully!';
+      statusMsg.hidden = false;
+      history.pushState({}, '', '#note-saved');
+    });
+  </script>
+</body>
+</html>

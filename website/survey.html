@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PulseFeedback — Quick Survey</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 620px; margin: 40px auto; padding: 0 16px; color: #333; }
+    h1 { color: #202124; margin-bottom: 6px; }
+    .status-banner { padding: 12px 16px; background: #e6f4ea; color: #137333; border-radius: 6px; margin-bottom: 20px; font-weight: bold; }
+    form { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+    .question { margin-bottom: 16px; }
+    label { display: block; font-weight: 500; margin-bottom: 6px; }
+    input[type="text"], textarea { width: 100%; box-sizing: border-box; padding: 8px 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 4px; }
+    textarea { min-height: 70px; }
+    .radio-group { display: flex; gap: 16px; margin-top: 6px; }
+    .radio-option { display: flex; align-items: center; gap: 6px; font-weight: normal; }
+    button[type="submit"] { background: #0b8043; color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+    button[type="submit"]:hover { background: #086835; }
+    .response-card { border-bottom: 1px solid #eee; padding: 12px 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>PulseFeedback</h1>
+    <p>Tell us about your developer tools experience.</p>
+
+    <div role="status" data-testid="survey-status" class="status-banner" hidden></div>
+
+    <form id="survey-form">
+      <div class="question">
+        <label for="respondent-name">Your Name</label>
+        <input type="text" id="respondent-name" data-testid="respondent-name" placeholder="Grace Hopper" required>
+      </div>
+
+      <div class="question">
+        <label>Overall Experience</label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="rating" value="Excellent" data-testid="rating-excellent" checked> Excellent</label>
+          <label class="radio-option"><input type="radio" name="rating" value="Good" data-testid="rating-good"> Good</label>
+          <label class="radio-option"><input type="radio" name="rating" value="Average" data-testid="rating-average"> Average</label>
+        </div>
+      </div>
+
+      <div class="question">
+        <label for="feedback-comment">Comments</label>
+        <textarea id="feedback-comment" data-testid="feedback-comment" placeholder="What did you like most?" required></textarea>
+      </div>
+
+      <button type="submit" data-testid="submit-survey-btn">Submit Feedback</button>
+    </form>
+
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2>Responses (<span data-testid="responses-count">0 responses</span>)</h2>
+    </div>
+    <ul data-testid="responses-list" style="list-style: none; padding: 0;"></ul>
+  </main>
+
+  <script>
+    const responses = [];
+    const form = document.getElementById('survey-form');
+    const nameInput = document.getElementById('respondent-name');
+    const commentInput = document.getElementById('feedback-comment');
+    const statusBox = document.querySelector('[data-testid="survey-status"]');
+    const countEl = document.querySelector('[data-testid="responses-count"]');
+    const listEl = document.querySelector('[data-testid="responses-list"]');
+
+    function updateUI() {
+      listEl.innerHTML = '';
+      responses.forEach(r => {
+        const li = document.createElement('li');
+        li.className = 'response-card';
+        li.innerHTML = `<strong>${r.name}</strong> rated <em>${r.rating}</em>: <p>${r.comment}</p>`;
+        listEl.appendChild(li);
+      });
+      countEl.textContent = `${responses.length} response${responses.length === 1 ? '' : 's'}`;
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      const rating = document.querySelector('input[name="rating"]:checked').value;
+      const comment = commentInput.value.trim();
+      if (!name || !comment) return;
+
+      responses.push({ name, rating, comment });
+      updateUI();
+      statusBox.textContent = 'Feedback submitted successfully!';
+      statusBox.hidden = false;
+      nameInput.value = '';
+      commentInput.value = '';
+      history.pushState({}, '', '#survey-submitted');
+    });
+  </script>
+</body>
+</html>
