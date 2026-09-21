@@ -52,6 +52,8 @@ test('enrichment captures DOM, corrects a failed count, publishes a real passing
   let attempts = 0;
   const result = await enrichReplay(s,{invokeAgent:async task => {
     attempts++;
+    assert(task.prompt.includes(`candidatePath:\n${task.candidatePath}\n`));
+    assert(!task.prompt.includes('Paths (JSON)'));
     const observations = JSON.parse(await readFile(task.observationsPath,'utf8'));
     assert(observations.some(o => o.dom.some(el => el.text === 'Submission saved' && el.visible)));
     assert(observations.some(o => o.dom.some(el => el.count === 1)));
@@ -128,4 +130,28 @@ test('concurrent enrichment is rejected without disturbing the lock', async t =>
   await writeFile(s.scriptPath+'.enrichment.lock','test owner');
   await assert.rejects(enrichReplay(s),/already running/);
   assert.equal(await readFile(s.scriptPath+'.enrichment.lock','utf8'),'test owner');
+});
+
+
+test('reported tool denials stop enrichment without retrying or altering the export', async t => {
+  const s = await session(t);
+  const original = await readFile(s.scriptPath,'utf8');
+  const executable = path.join(s.dir,'denied-agy.cjs');
+  const counter = path.join(s.dir,'invocations');
+  const response = {status:'SUCCESS',response:'ACCESS_DENIED: view_file candidate.mjs. No assertions added.'};
+  await writeFile(executable,`#!${process.execPath}
+require('node:fs').appendFileSync(${JSON.stringify(counter)},'called\\n');
+console.log(${JSON.stringify(JSON.stringify(response))});
+`,{mode:0o700});
+  const before = process.env.BROWSER_REPLAY_AGY;
+  process.env.BROWSER_REPLAY_AGY = executable;
+  try {
+    await assert.rejects(enrichReplay(s),/tool permission denial/);
+    assert.equal(await readFile(counter,'utf8'),'called\n');
+    assert.equal(await readFile(s.scriptPath,'utf8'),original);
+    await assert.rejects(readFile(s.scriptPath+'.enrichment.lock'),{code:'ENOENT'});
+  } finally {
+    if (before === undefined) delete process.env.BROWSER_REPLAY_AGY;
+    else process.env.BROWSER_REPLAY_AGY = before;
+  }
 });
