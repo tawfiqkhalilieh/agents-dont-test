@@ -21,6 +21,15 @@
         "PORT_BROKER_DIR": "/tmp/ai-station-port-broker",
         "PORT_BROKER_RANGE": "5000-7000"
       }
+    },
+    "browser-replay": {
+      "command": "/usr/bin/node",
+      "args": [
+        "/workspace/.worktrees/tawfiqkhalilieh__agents-dont-test/antigravity_task_1789998153217/plugins/browser-replay/src/server.js"
+      ],
+      "env": {
+        "BROWSER_REPLAY_OUTPUT": "/workspace/.worktrees/tawfiqkhalilieh__agents-dont-test/antigravity_task_1789998153217/recordings"
+      }
     }
   }
 }
