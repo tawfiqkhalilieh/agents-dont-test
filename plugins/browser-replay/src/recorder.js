@@ -157,6 +157,7 @@ export class Recorder {
     while (this.pending.size) await Promise.allSettled([...this.pending]);
     this.active = false;
     for (const remove of this.listeners.splice(0)) remove();
+    await Promise.allSettled([...this.pages.keys()].flatMap(p => p.frames().map(f => f.evaluate(marker => window[marker]?.abort(), this.options.marker))));
     try {
       await this.queue;
       const events = [];
@@ -169,7 +170,7 @@ export class Recorder {
       if (this.errors.length) recording.events.push({type:'unsupported',reason:`Recording errors: ${this.errors.join('; ')}`});
       await writeFile(`${this.base}.json`, JSON.stringify(recording,null,2), {mode:0o600});
       await writeFile(`${this.base}.mjs`, generate(recording), {mode:0o600});
-      return {recording:`${this.base}.json`, script:`${this.base}.mjs`, events:events.length, requiredEnv:recording.requiredEnv, errors:this.errors};
+      return {journal:this.journal, recording:`${this.base}.json`, script:`${this.base}.mjs`, events:events.length, requiredEnv:recording.requiredEnv, errors:this.errors};
     } finally {
       // Playwright disconnects CDP clients without closing the external browser.
       await this.browser.close(); this.browser = null;

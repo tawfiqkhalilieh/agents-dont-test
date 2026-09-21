@@ -83,6 +83,11 @@ test('CDP attachment records another client and leaves browser running', async t
   const output = await r.stop();
   assert((await readFile(output.script,'utf8')).includes('External agent'));
   assert.equal(await page.title(),'');
+  assert.equal(await page.evaluate(() => window.__browserReplayCapture.signal.aborted),true);
+  await r.start({endpoint:'http://127.0.0.1:19387'});
+  await page.locator('#user').fill('Second recording');
+  const second = await r.stop();
+  assert((await readFile(second.script,'utf8')).includes('Second recording'));
 });
 
 test('rejects conflicting recordings and unsafe filenames', async t => {
