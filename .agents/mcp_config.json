@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "puppeteer": {
+      "command": "node",
+      "args": [
+        "/app/shared/browser_mcp_server.js"
+      ],
+      "env": {
+        "AI_STATION_TASK_ID": "antigravity_task_1789998153217",
+        "PLAYWRIGHT_BROWSERS_PATH": "/ms-playwright",
+        "AI_STATION_VIDEOS_DIR": "/workspace/videos",
+        "AI_STATION_FRAMES_DIR": "/workspace/videos/sessions"
+      }
+    },
+    "port-broker": {
+      "command": "/usr/local/bin/port-broker",
+      "args": [
+        "mcp"
+      ],
+      "env": {
+        "PORT_BROKER_DIR": "/tmp/ai-station-port-broker",
+        "PORT_BROKER_RANGE": "5000-7000"
+      }
+    }
+  }
+}
