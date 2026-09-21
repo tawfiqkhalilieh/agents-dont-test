@@ -13,7 +13,8 @@
     "browser": "node scripts/browser.js",
     "enrich": "node scripts/enrich-test.js",
     "demo:enrich": "node scripts/demo-enrichment.js",
-    "demo:serve": "node scripts/serve-demo.js"
+    "demo:serve": "node scripts/serve-demo.js",
+    "test:websites": "node scripts/test-websites.js"
   },
   "dependencies": {
     "jsonc-parser": "^3.3.1"
