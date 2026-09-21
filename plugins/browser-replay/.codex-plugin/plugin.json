@@ -1,0 +1,29 @@
+{
+  "name": "browser-replay",
+  "version": "0.1.0",
+  "description": "Record agent browser testing and export repeatable Playwright JavaScript.",
+  "author": {
+    "name": "agents-dont-test"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Browser Replay",
+    "shortDescription": "Record browser tasks once. Replay without an agent.",
+    "longDescription": "Record agent browser testing and export repeatable Playwright JavaScript.",
+    "developerName": "agents-dont-test",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": [
+      "Record this browser test and export a replay script."
+    ]
+  },
+  "mcpServers": {
+    "browser-replay": {
+      "command": "node",
+      "args": [
+        "src/server.js"
+      ],
+      "cwd": "."
+    }
+  }
+}

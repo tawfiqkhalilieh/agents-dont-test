@@ -1,0 +1,6 @@
+{
+  "name": "browser-replay",
+  "version": "0.1.0",
+  "description": "Record agent browser testing once and export repeatable Playwright JavaScript.",
+  "author": {"name": "agents-dont-test"}
+}
