@@ -22,7 +22,7 @@ export async function invokeAntigravity({workspace,prompt,timeoutMs,signal}) {
   if (result.code !== 0) throw new Error(`Antigravity failed: ${describeFailure(result)}`);
   let response;
   try {response = JSON.parse(result.stdout);} catch {throw new Error('Antigravity returned invalid JSON');}
-  if (/ACCESS_DENIED|permission check failed|user denied permission|permission denied|soft[- ]denied/i.test(`${result.stderr}\n${response.response || ''}\n${response.error || ''}`)) throw new Error('Antigravity reported a tool permission denial. Check exact unquoted file-tool paths and workspace permissions before retrying; no automatic retries will bypass this denial.');
+  if (response.denied_actions?.length || /ACCESS_DENIED|permission check failed|user denied permission|permission denied|auto[- ]denied|soft[- ]denied/i.test(`${result.stderr}\n${response.response || ''}\n${response.error || ''}`)) throw new Error('Antigravity reported a tool permission denial. Check exact unquoted file-tool paths and workspace permissions before retrying; no automatic retries will bypass this denial.');
   if (response.status !== 'SUCCESS') throw new Error(`Antigravity did not succeed: ${response.error || response.status}`);
   return {conversationId:response.conversation_id,usage:response.usage};
 }
