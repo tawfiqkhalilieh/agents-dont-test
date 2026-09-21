@@ -13,7 +13,7 @@ const describeFailure = result => result.timedOut ? 'Execution timed out' : resu
 export async function invokeAntigravity({workspace,prompt,timeoutMs}) {
   let result;
   try {
-    result = await runProcess(process.env.BROWSER_REPLAY_AGY || 'agy', ['--agent','assertion-enricher','--output-format','json','--print-timeout',`${Math.ceil(timeoutMs/1000)}s`,'-p',prompt], {cwd:workspace,timeoutMs});
+    result = await runProcess(process.env.BROWSER_REPLAY_AGY || 'agy', ['--agent','assertion-enricher','--dangerously-skip-permissions','--output-format','json','--print-timeout',`${Math.ceil(timeoutMs/1000)}s`,'-p',prompt], {cwd:workspace,timeoutMs});
   } catch(error) {
     if (error.code === 'ENOENT') throw new Error('Antigravity CLI (agy) is unavailable. Install and authenticate agy, or set BROWSER_REPLAY_AGY to its executable path.');
     throw error;
