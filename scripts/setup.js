@@ -32,6 +32,26 @@ for (const [relative,key] of [['.mcp.json','mcpServers'],['.agents/mcp_config.js
   data[key] = {...data[key],'browser-replay':config};
   changes.push([file,original,JSON.stringify(data,null,2)+'\n']);
 }
+// TOML spells one key several ways, so scan tables and keys rather than the raw
+// text: a [mcp_servers.browser-replay] table (quoted or with a sub-table), a
+// dotted key at top level, or a plain key under [mcp_servers]. Comments never count.
+const name = String.raw`(?:browser-replay|"browser-replay"|'browser-replay')`;
+function hasUnmanagedCodexEntry(toml) {
+  let table = '';
+  for (const raw of toml.split('\n')) {
+    const line = raw.replace(/#.*$/,'').trim();
+    if (!line) continue;
+    const header = line.match(/^\[\[?\s*(.*?)\s*\]\]?$/);
+    if (header) {
+      table = header[1];
+      if (new RegExp(String.raw`^mcp_servers\.${name}(?:\.|$)`).test(table)) return true;
+      continue;
+    }
+    if (new RegExp(String.raw`^mcp_servers\.${name}\s*=`).test(line)) return true;
+    if (table === 'mcp_servers' && new RegExp(String.raw`^${name}\s*=`).test(line)) return true;
+  }
+  return false;
+}
 const file = path.join(target,'.codex/config.toml');
 const original = await read(file);
 const begin = '# BEGIN browser-replay (managed by npm run setup)';
@@ -42,7 +62,7 @@ if (base.includes(begin)) {
   if (b < 0) throw new Error('Unterminated browser-replay config block');
   base = base.slice(0,a)+base.slice(b+end.length).replace(/^\n/,'');
 }
-if (/\[\s*mcp_servers\.(?:browser-replay|"browser-replay"|'browser-replay')(?:\.|\s*\])/.test(base)) throw new Error('Existing unmanaged browser-replay Codex entry; remove or rename it first.');
+if (hasUnmanagedCodexEntry(base)) throw new Error('Existing unmanaged browser-replay Codex entry; remove or rename it first.');
 const block = `${begin}\n[mcp_servers.browser-replay]\ncommand = ${JSON.stringify(config.command)}\nargs = ${JSON.stringify(config.args)}\ntool_timeout_sec = 900\n[mcp_servers.browser-replay.env]\nBROWSER_REPLAY_OUTPUT = ${JSON.stringify(config.env.BROWSER_REPLAY_OUTPUT)}\n${end}\n`;
 changes.push([file,original,base.trimEnd()+'\n\n'+block]);
 await checkChromium({install:values['install-browser']});
