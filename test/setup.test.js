@@ -33,6 +33,44 @@ test('setup aborts on malformed configs before writing other files', async t => 
   await assert.rejects(readFile(path.join(dir,'.mcp.json')), {code:'ENOENT'});
 });
 
+test('setup refuses every TOML spelling of an unmanaged browser-replay Codex entry', async t => {
+  const spellings = {
+    'bare table':'[mcp_servers.browser-replay]\ncommand = "my-own-node"\n',
+    'quoted table':'[mcp_servers."browser-replay"]\ncommand = "my-own-node"\n',
+    'sub-table only':'[mcp_servers.browser-replay.env]\nFOO = "bar"\n',
+    'dotted key':'mcp_servers.browser-replay = { command = "my-own-node" }\n',
+    'key under [mcp_servers]':'[mcp_servers]\nbrowser-replay = { command = "my-own-node" }\nlinear = { command = "mcp-linear" }\n',
+    'quoted key under [mcp_servers]':'[mcp_servers]\n"browser-replay" = { command = "my-own-node" }\n',
+  };
+  for (const [label,toml] of Object.entries(spellings)) {
+    const dir = await mkdtemp(path.resolve('.browser-replay-setup-'));
+    t.after(() => rm(dir,{recursive:true,force:true}));
+    await mkdir(path.join(dir,'.codex'));
+    const file = path.join(dir,'.codex/config.toml');
+    await writeFile(file,toml);
+    await assert.rejects(exec(process.execPath,['scripts/setup.js',dir]),error => {
+      assert(error.stderr.includes('Existing unmanaged browser-replay Codex entry'),label);
+      return true;
+    },label);
+    assert.equal(await readFile(file,'utf8'),toml,`${label}: config.toml must not be touched`);
+    await assert.rejects(readFile(path.join(dir,'.mcp.json')),{code:'ENOENT'},`${label}: no partial install`);
+  }
+});
+
+test('setup is not fooled by a comment mentioning the browser-replay table', async t => {
+  const dir = await mkdtemp(path.resolve('.browser-replay-setup-'));
+  t.after(() => rm(dir,{recursive:true,force:true}));
+  await mkdir(path.join(dir,'.codex'));
+  const file = path.join(dir,'.codex/config.toml');
+  await writeFile(file,'# We removed our old [mcp_servers.browser-replay] entry; setup manages it now.\n[mcp_servers.linear]\ncommand = "/usr/local/bin/mcp-linear"\n');
+  await exec(process.execPath,['scripts/setup.js',dir]);
+  const toml = await readFile(file,'utf8');
+  assert(toml.includes('[mcp_servers.linear]'));
+  assert(toml.includes('tool_timeout_sec = 900'));
+  // the decoy comment also contains the table name, so count real headers only
+  assert.equal(toml.split('\n').filter(line => line.trim() === '[mcp_servers.browser-replay]').length,1);
+});
+
 test('production setup detects missing Chromium before writing configurations', async t => {
   const dir = await mkdtemp(path.resolve('.browser-replay-setup-'));
   t.after(() => rm(dir,{recursive:true,force:true}));
